@@ -1,3 +1,5 @@
+const GAME_CONSTANTS = require("../constants")
+
 class GridHolder {
     constructor(rows, cols) {
         /** @protected {number[]} matrix holder */
@@ -14,7 +16,7 @@ class GridHolder {
             this.Grid.push([])
 
             for (let j = 0; j < cols; j++)
-                this.Grid[i].push(DISABLED_ENTRY_REPRESENTATION)
+                this.Grid[i].push(GAME_CONSTANTS.DISABLED_ENTRY_REPRESENTATION)
         }
     }
 
@@ -43,7 +45,7 @@ class GridHolder {
      * @returns {boolean}
      */
     entryIsEnabled(row, col) {
-        return this.Grid[row][col] != DISABLED_ENTRY_REPRESENTATION
+        return this.Grid[row][col] != GAME_CONSTANTS.DISABLED_ENTRY_REPRESENTATION
     }
 
     /**
@@ -65,7 +67,11 @@ class GridHolder {
      * @returns {void}
      */
     disableEntry(row, col) {
-        this.Grid[row][col] = DISABLED_ENTRY_REPRESENTATION
+        this.Grid[row][col] = GAME_CONSTANTS.DISABLED_ENTRY_REPRESENTATION
+    }
+    
+    getEntry(row, col) {
+        return this.Grid[row][col]
     }
 }
 

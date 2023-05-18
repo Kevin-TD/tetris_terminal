@@ -1,4 +1,4 @@
-const { MOVEMENT_TYPES } = require("./constants.js")
+const { MOVEMENT_TYPES } = require("../constants.js")
 
 class MovementWrapper {
     constructor(move) {
