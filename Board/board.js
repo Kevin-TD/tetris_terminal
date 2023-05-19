@@ -1,11 +1,12 @@
 const CONSTANTS = require("../constants")
 const { GridHolder } = require("../GridHolder/gridHolder")
 const { MovementWrapper } = require("../Movement/movementWrapper")
+const { RotationStateWrapper }  = require("../RotationStates/rotationStateWrapper")
 const { TPiece } = require("../Pieces/t_piece")
+const { sortDoubleArray } = require("../utils")
 
 
-
-
+// TODO: change dx dy to like change in row, change in col. i dont like the var swapping
 
 
 class Board {
@@ -19,7 +20,7 @@ class Board {
         this.activePiece = {
             entries: [],
             pieceRepresentation: "", 
-            pieceState: 0,  // for rotations: -3,-2,-1,0,1,2,3
+            rotationState: new RotationStateWrapper("DEFAULT"),  
             groundHasBeenTouched: false, 
             groundMovesMade: 0, 
 
@@ -74,7 +75,6 @@ class Board {
         }
         CONSTANTS.DEBUG_LOG(this.activePiece.entries)
         this.activePiece.pieceRepresentation = piece.TextRepresentation
-        this.activePiece.pieceState = 0
 
 
 
@@ -128,6 +128,9 @@ class Board {
         CONSTANTS.DEBUG_LOG("going to move")
         CONSTANTS.DEBUG_LOG(this.activePiece.entries)
 
+        this.activePiece.entries = sortDoubleArray(this.activePiece.entries)
+
+
         if (dx == 1 || dy == 1) {
             for (let i = this.activePiece.entries.length - 1; i >= 0; i--) {
                 this.Grid.disableEntry(this.activePiece.entries[i][0], this.activePiece.entries[i][1])
@@ -177,9 +180,15 @@ class Board {
         return false; 
     }
 
-    rotateActivePiece(rotationType) {
+    /**
+     * 
+     * @param {MovementWrapper} rotation 
+     */
+    rotateActivePiece(rotation) {
+        let newEntries
+
         if (this.activePiece.pieceRepresentation == CONSTANTS.T_PIECE_REPRESENTATION) {
-            
+            newEntries = TPiece.rotate(rotation, this.activePiece.rotationState, this.activePiece.entries)
         }
         else if (this.activePiece.pieceRepresentation == CONSTANTS.O_PIECE_REPRESENTATION) {
 
@@ -199,7 +208,59 @@ class Board {
         else if (this.activePiece.pieceRepresentation == CONSTANTS.S_PIECE_REPRESENTATION) {
 
         }
-        
+
+         
+        // check if can do spin 
+        for (let i = 0; i < newEntries.length; i++) {
+            let row = newEntries[i][0]
+            let col = newEntries[i][1]
+
+            let pieceIsPartOfActive = false;
+
+            activePieceLoop: 
+            for (let j = 0; j < this.activePiece.entries.length; j++) {
+                let row_j = this.activePiece.entries[j][0]
+                let col_j = this.activePiece.entries[j][1]  
+
+                if (row_j == row && col_j == col) {
+                    pieceIsPartOfActive = true
+                    break activePieceLoop
+                }
+            } 
+
+
+            if (
+                this.Grid.entryIsUndefined(row, col) || 
+                (this.Grid.entryIsEnabled(row, col) && !pieceIsPartOfActive)
+            ) {
+                CONSTANTS.DEBUG_LOG("cannot do this spin")
+                return; 
+            }
+        }
+
+
+
+        // do spin 
+
+        // disable current entires 
+        for (let i = 0; i < this.activePiece.entries.length; i++) {
+            let row = this.activePiece.entries[i][0]
+            let col = this.activePiece.entries[i][1]
+            this.Grid.disableEntry(row, col)
+        }
+
+        this.activePiece.entries = []
+
+        // update grid 
+        for (let i = 0; i < newEntries.length; i++) {
+            let row = newEntries[i][0]
+            let col = newEntries[i][1]
+            this.Grid.enableEntry(row, col, CONSTANTS.T_PIECE_REPRESENTATION)
+            this.activePiece.entries.push([row, col])
+        }
+
+        this.activePiece.rotationState.rotateState(rotation)
+  
     }
 
     input(input) {
@@ -215,63 +276,11 @@ class Board {
         else if (input == "h") {
             this.hardDropActiveEntry()
         }
-        else if (input == "s") { // ccw
-            if (this.activePiece.pieceRepresentation == CONSTANTS.T_PIECE_REPRESENTATION) {
-                let newEntries = TPiece.rotate(1, 0, this.activePiece.entries)
-                CONSTANTS.DEBUG_LOG("new entries = ")
-                console.log(newEntries)
-                
-                // check if can do spin 
-                for (let i = 0; i < newEntries.length; i++) {
-                    let row = newEntries[i][0]
-                    let col = newEntries[i][1]
-
-                    let pieceIsPartOfActive = false;
-
-                    activePieceLoop: 
-                    for (let j = 0; j < this.activePiece.entries.length; j++) {
-                        let row_j = this.activePiece.entries[j][0]
-                        let col_j = this.activePiece.entries[j][1]  
-
-                        if (row_j == row && col_j == col) {
-                            pieceIsPartOfActive = true
-                            break activePieceLoop
-                        }
-                    } 
-
-
-                    if (this.Grid.getEntry(row, col) == undefined || (this.Grid.entryIsEnabled(row, col) && !pieceIsPartOfActive)) {
-                        CONSTANTS.DEBUG_LOG("cannot do this spin")
-                    }
-                }
-
- 
-
-                // do spin 
-
-                // disable current entires 
-                for (let i = 0; i < this.activePiece.entries.length; i++) {
-                    let row = this.activePiece.entries[i][0]
-                    let col = this.activePiece.entries[i][1]
-                    this.Grid.disableEntry(row, col)
-                }
-
-                this.activePiece.entries = []
-
-                // update grid 
-                for (let i = 0; i < newEntries.length; i++) {
-                    let row = newEntries[i][0]
-                    let col = newEntries[i][1]
-                    this.Grid.enableEntry(row, col, CONSTANTS.T_PIECE_REPRESENTATION)
-                    this.activePiece.entries.push([row, col])
-                }
-
-                this.activePiece.pieceState = (this.activePiece.pieceState + 1) % 4
-
-            }
+        else if (input == "s") { 
+           this.rotateActivePiece(new MovementWrapper("CCW"))
         }
-        else if (input == "f") { // cw
-
+        else if (input == "f") { 
+            this.rotateActivePiece(new MovementWrapper("CW"))
         }
 
 

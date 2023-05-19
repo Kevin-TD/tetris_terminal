@@ -19,12 +19,14 @@ const prompt = require("prompt-sync")({ sigint: true })
 // T, O, I, J, L, Z, S
 
 let Game = new Board(16, 10) 
-Game.insertPiece(new OPiece())
+let t = new TPiece()
+Game.insertPiece(t)
+t.loadRotationData("./Pieces/PieceRotData/t_piece_rot_data.txt")
+
 
 Game.printBoard()
 let input = prompt("Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down, h - hard drop, q - quit): ")
 while (input != "q") {
-    console.log(input)
 
     Game.input(input)
 

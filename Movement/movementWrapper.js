@@ -8,6 +8,14 @@ class MovementWrapper {
         this.move = MOVEMENT_TYPES[move]
     }
 
+    getMovementString() {
+        for (let key of Object.keys(MOVEMENT_TYPES)) {
+            if (MOVEMENT_TYPES[key] == this.move) {
+                return key 
+            }
+        }
+    }
+
     getMove() {
         return this.move 
     }

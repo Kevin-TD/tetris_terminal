@@ -11,6 +11,7 @@ const GRID_ROWS = 4
 const GRID_COLS = 4 
 
 const DEBUG = true 
+const FULL_DEPTH = true 
 
 const MOVEMENT_TYPES = {
     LEFT: 1,
@@ -31,7 +32,8 @@ const ROTATION_STATES = {
 }
 
 const DEBUG_LOG = (x) => {
-    if (DEBUG) console.log(x)
+    if (FULL_DEPTH) console.dir(x, {depth: null})
+    else if (DEBUG) console.log(x)
 }
 
 module.exports = {
@@ -45,7 +47,6 @@ module.exports = {
     S_PIECE_REPRESENTATION,
     GRID_ROWS,
     GRID_COLS,
-    DEBUG, 
     MOVEMENT_TYPES, 
     ROTATION_STATES, 
     DEBUG_LOG,

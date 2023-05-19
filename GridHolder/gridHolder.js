@@ -48,6 +48,10 @@ class GridHolder {
         return this.Grid[row][col] != GAME_CONSTANTS.DISABLED_ENTRY_REPRESENTATION
     }
 
+    entryIsUndefined(row, col) {
+        return this.Grid[row] == undefined || this.Grid[row][col] == undefined
+    }
+
     /**
      * 
      * @param {number} row 
