@@ -4,18 +4,23 @@ const { MovementWrapper } = require("../Movement/movementWrapper")
 const { RotationStateWrapper }  = require("../RotationStates/rotationStateWrapper")
 const { TPiece } = require("../Pieces/t_piece")
 const { sortDoubleArray } = require("../utils")
+const RotationHandler = require("../Pieces/rotation_maps")
+const { BagHandler } = require("../Bag/bagHandler")
 
 
-// TODO: change dx dy to like change in row, change in col. i dont like the var swapping
+// TODO: change dx dy to like change in row, change in col. i dont like the var swappin
+// TODO: make left padding, ground moves limit into global constants 
 
 
 class Board {
     constructor(rows, cols) {
         /** @protected {number[]} matrix holder */
         this.Grid = new GridHolder(rows, cols)
+        this.bagHandler = new BagHandler()
 
-        this.leftPadding = 3
+        this.leftPadding = 3 
         this.groundMovesLimit = 3; // if block has touched the ground, how many times can it be moved further before locking into place
+
 
         this.activePiece = {
             entries: [],
@@ -85,7 +90,7 @@ class Board {
 
         while (!errored) {
             try {
-                this.makeMove(0,1)
+                this.makeMove(1, 0)
             }
 
             catch {
@@ -99,20 +104,18 @@ class Board {
 
     /**
      * 
-     * @param {-1 | 0 | 1} dx 
-     * @param {-1 | 0 | 1} dy 
+     * @param {-1 | 0 | 1} dr change in row
+     * @param {-1 | 0 | 1} dc change in column
      * @returns 
      */
-    makeMove(dx, dy) {
-        let temp = dy 
-        dy = dx 
-        dx = temp
+    makeMove(dr, dc) {
+
 
         // var swap for the sake of keeping it intuitive 
 
         for (let i = this.activePiece.entries.length - 1; i >= 0; i--) {
-            const plannedEntryIsEnabled = this.Grid.entryIsEnabled(this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy)
-            const plannedEntryIsNotApartOfActiveEntry = !this.activePiece.entries.some(x => x.toString() == [this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy].toString())  // roundabout way of checking if two lists are equal via element comparison
+            const plannedEntryIsEnabled = this.Grid.entryIsEnabled(this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc)
+            const plannedEntryIsNotApartOfActiveEntry = !this.activePiece.entries.some(x => x.toString() == [this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc].toString())  // roundabout way of checking if two lists are equal via element comparison
 
             const plannedEntryInterferes = plannedEntryIsEnabled && plannedEntryIsNotApartOfActiveEntry
             
@@ -131,18 +134,18 @@ class Board {
         this.activePiece.entries = sortDoubleArray(this.activePiece.entries)
 
 
-        if (dx == 1 || dy == 1) {
+        if (dr == 1 || dc == 1) {
             for (let i = this.activePiece.entries.length - 1; i >= 0; i--) {
                 this.Grid.disableEntry(this.activePiece.entries[i][0], this.activePiece.entries[i][1])
-                this.Grid.enableEntry(this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy, this.activePiece.pieceRepresentation)
-                this.activePiece.entries[i] = [this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy]
+                this.Grid.enableEntry(this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc, this.activePiece.pieceRepresentation)
+                this.activePiece.entries[i] = [this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc]
             }   
         }
         else {
             for (let i = 0; i < this.activePiece.entries.length; i++) {
                 this.Grid.disableEntry(this.activePiece.entries[i][0], this.activePiece.entries[i][1])
-                this.Grid.enableEntry(this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy, this.activePiece.pieceRepresentation)
-                this.activePiece.entries[i] = [this.activePiece.entries[i][0] + dx, this.activePiece.entries[i][1] + dy]
+                this.Grid.enableEntry(this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc, this.activePiece.pieceRepresentation)
+                this.activePiece.entries[i] = [this.activePiece.entries[i][0] + dr, this.activePiece.entries[i][1] + dc]
             }   
         }
     }
@@ -153,14 +156,14 @@ class Board {
      */
     moveActivePiece(movement) {
         if (movement.getMove() == CONSTANTS.MOVEMENT_TYPES.LEFT) {
-            this.makeMove(-1, 0)    
+            this.makeMove(0, -1)    
         }
         else if (movement.getMove() == CONSTANTS.MOVEMENT_TYPES.RIGHT) {
-            this.makeMove(1, 0)
+            this.makeMove(0, 1)
         }
         else if (movement.getMove() == CONSTANTS.MOVEMENT_TYPES.DOWN) {
             try {
-                this.makeMove(0, 1)
+                this.makeMove(1, 0)
             }
             catch {
                 CONSTANTS.DEBUG_LOG("cannot make move down")
@@ -185,29 +188,7 @@ class Board {
      * @param {MovementWrapper} rotation 
      */
     rotateActivePiece(rotation) {
-        let newEntries
-
-        if (this.activePiece.pieceRepresentation == CONSTANTS.T_PIECE_REPRESENTATION) {
-            newEntries = TPiece.rotate(rotation, this.activePiece.rotationState, this.activePiece.entries)
-        }
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.O_PIECE_REPRESENTATION) {
-
-        }
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.I_PIECE_REPRESENTATION) {
-
-        }
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.J_PIECE_REPRESENTATION) {
-
-        }
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.L_PIECE_REPRESENTATION) {
-
-        }
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.Z_PIECE_REPRESENTATION) {
-
-        } 
-        else if (this.activePiece.pieceRepresentation == CONSTANTS.S_PIECE_REPRESENTATION) {
-
-        }
+        let newEntries = RotationHandler.getRotatedEntries(rotation, this.activePiece.rotationState, this.activePiece.entries, this.activePiece.pieceRepresentation)
 
          
         // check if can do spin 
@@ -255,7 +236,7 @@ class Board {
         for (let i = 0; i < newEntries.length; i++) {
             let row = newEntries[i][0]
             let col = newEntries[i][1]
-            this.Grid.enableEntry(row, col, CONSTANTS.T_PIECE_REPRESENTATION)
+            this.Grid.enableEntry(row, col, this.activePiece.pieceRepresentation)
             this.activePiece.entries.push([row, col])
         }
 

@@ -1,6 +1,12 @@
 const { Board } = require("./Board/board.js")
 const { TPiece } = require("./Pieces/t_piece.js")
 const { OPiece } = require("./Pieces/o_piece.js")
+const { IPiece } = require("./Pieces/i_piece.js")
+const { JPiece } = require("./Pieces/j_piece.js")
+const { LPiece } = require("./Pieces/l_piece.js")
+const { ZPiece } = require("./Pieces/z_piece.js")
+const { SPiece } = require("./Pieces/s_piece.js")
+
 const prompt = require("prompt-sync")({ sigint: true })
 
 // TODO: 
@@ -9,6 +15,7 @@ const prompt = require("prompt-sync")({ sigint: true })
     impl bag generation 
     impl line clearing
     impl score 
+    remove all useless imports 
     convert to discordjs 
 */
 
@@ -19,9 +26,7 @@ const prompt = require("prompt-sync")({ sigint: true })
 // T, O, I, J, L, Z, S
 
 let Game = new Board(16, 10) 
-let t = new TPiece()
-Game.insertPiece(t)
-t.loadRotationData("./Pieces/PieceRotData/t_piece_rot_data.txt")
+Game.insertPiece(new SPiece())
 
 
 Game.printBoard()
