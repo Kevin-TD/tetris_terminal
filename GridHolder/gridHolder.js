@@ -35,6 +35,7 @@ class GridHolder {
         for (let i = 0; i < this.rows; i++)  {
             let curRow = this.Grid[i].join("")
             console.log(curRow)
+
         }
     }
 

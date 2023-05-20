@@ -6,9 +6,12 @@ const J_PIECE_REPRESENTATION = "⬜"
 const L_PIECE_REPRESENTATION = "🟧"
 const Z_PIECE_REPRESENTATION = "🟥"
 const S_PIECE_REPRESENTATION = "🟩"
+const GHOST_PIECE_REPRESENTATION = "🔳"
 
 const GRID_ROWS = 4
 const GRID_COLS = 4 
+const LEFT_PADDING = 3
+const GROUND_MOVES_LIMIT = 5 // if block has touched the ground, how many times can it be moved further before locking into place
 
 const DEBUG = true 
 const FULL_DEPTH = true 
@@ -45,8 +48,11 @@ module.exports = {
     L_PIECE_REPRESENTATION,
     Z_PIECE_REPRESENTATION,
     S_PIECE_REPRESENTATION,
+    GHOST_PIECE_REPRESENTATION,
     GRID_ROWS,
     GRID_COLS,
+    LEFT_PADDING, 
+    GROUND_MOVES_LIMIT,
     MOVEMENT_TYPES, 
     ROTATION_STATES, 
     DEBUG_LOG,

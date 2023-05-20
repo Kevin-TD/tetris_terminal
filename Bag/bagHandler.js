@@ -6,6 +6,8 @@ const { LPiece } = require("../Pieces/l_piece.js")
 const { ZPiece } = require("../Pieces/z_piece.js")
 const { SPiece } = require("../Pieces/s_piece.js")
 
+const { GHOST_PIECE_REPRESENTATION } = require("../constants.js")
+
 const { shuffleArray } = require("../utils.js")
 
 const { MovingPiece } = require("./movingPiece.js")
@@ -19,6 +21,8 @@ class BagHandler {
         ])
         this.holdPiece = []
         this.movingPiece = new MovingPiece() 
+        this.ghostPiece = new MovingPiece()
+        this.ghostPiece.pieceRepresentation = GHOST_PIECE_REPRESENTATION
     }
     getNextPiece() {
         let piece = this.Bag.shift() 
@@ -32,6 +36,7 @@ class BagHandler {
     holdPiece() {
         
     }
+    
 }
 
 module.exports = {

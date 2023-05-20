@@ -11,11 +11,13 @@ const prompt = require("prompt-sync")({ sigint: true })
 
 // TODO: 
 /*
-    impl rotation for all pieces 
+    impl rotation for all pieces [DONE]
     impl bag generation 
     impl line clearing
     impl score 
     remove all useless imports 
+    make more structured import handling (wrapper time)
+    make ghost piece
     convert to discordjs 
 */
 
@@ -26,8 +28,6 @@ const prompt = require("prompt-sync")({ sigint: true })
 // T, O, I, J, L, Z, S
 
 let Game = new Board(16, 10) 
-Game.insertPiece(new SPiece())
-
 
 Game.printBoard()
 let input = prompt("Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down, h - hard drop, q - quit): ")
