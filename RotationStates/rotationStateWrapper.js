@@ -1,6 +1,5 @@
 const { ROTATION_STATES, MOVEMENT_TYPES } = require("../constants.js")
 const { MovementWrapper } = require("../Movement/movementWrapper.js")
-const { DEBUG_LOG } = require("../constants.js")
 
 class RotationStateWrapper {
     constructor(rotationState) {
@@ -28,49 +27,66 @@ class RotationStateWrapper {
      */
     rotateState(rotation) {
         if (rotation.getMove() == MOVEMENT_TYPES.CCW) {
-            if (this.rotationState == ROTATION_STATES.DEFAULT) {
-                this.rotationState = ROTATION_STATES.CCW_1
+            switch (this.rotationState) {
+                case ROTATION_STATES.DEFAULT:
+                    this.rotationState = ROTATION_STATES.CCW_1
+                    break
+
+                case ROTATION_STATES.CCW_1:
+                    this.rotationState = ROTATION_STATES.CCW_2
+                    break
+
+                case ROTATION_STATES.CCW_2:
+                    this.rotationState = ROTATION_STATES.CCW_3
+                    break
+                
+                case ROTATION_STATES.CCW_3:
+                    this.rotationState = ROTATION_STATES.DEFAULT
+                    break
+                
+                case ROTATION_STATES.CW_1:
+                    this.rotationState = ROTATION_STATES.DEFAULT
+                    break
+                
+                case ROTATION_STATES.CW_2:
+                    this.rotationState = ROTATION_STATES.CW_1
+                    break
+                
+                case ROTATION_STATES.CW_3:
+                    this.rotationState = ROTATION_STATES.CW_2
+                    break
             }
-            else if (this.rotationState == ROTATION_STATES.CCW_1) {
-                this.rotationState = ROTATION_STATES.CCW_2
-            }
-            else if (this.rotationState == ROTATION_STATES.CCW_2) {
-                this.rotationState = ROTATION_STATES.CCW_3
-            }
-            else if (this.rotationState == ROTATION_STATES.CCW_3) {
-                this.rotationState = ROTATION_STATES.DEFAULT
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_1) {
-                this.rotationState = ROTATION_STATES.DEFAULT
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_2) {
-                this.rotationState = ROTATION_STATES.CW_1
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_3) {
-                this.rotationState = ROTATION_STATES.CW_2
-            }
+            
         }   
         else if (rotation.getMove() == MOVEMENT_TYPES.CW) {
-            if (this.rotationState == ROTATION_STATES.DEFAULT) {
-                this.rotationState = ROTATION_STATES.CW_1
-            }
-            else if (this.rotationState == ROTATION_STATES.CCW_1) {
-                this.rotationState = ROTATION_STATES.DEFAULT
-            }
-            else if (this.rotationState == ROTATION_STATES.CCW_2) {
-                this.rotationState = ROTATION_STATES.CCW_1
-            }
-            else if (this.rotationState == ROTATION_STATES.CCW_3) {
-                this.rotationState = ROTATION_STATES.CCW_2
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_1) {
-                this.rotationState = ROTATION_STATES.CW_2
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_2) {
-                this.rotationState = ROTATION_STATES.CW_3
-            }
-            else if (this.rotationState == ROTATION_STATES.CW_3) {
-                this.rotationState = ROTATION_STATES.DEFAULT
+            switch (this.rotationState) {
+                case ROTATION_STATES.DEFAULT:
+                    this.rotationState = ROTATION_STATES.CW_1
+                    break
+
+                case ROTATION_STATES.CCW_1:
+                    this.rotationState = ROTATION_STATES.DEFAULT
+                    break
+
+                case ROTATION_STATES.CCW_2:
+                    this.rotationState = ROTATION_STATES.CCW_1
+                    break
+
+                case ROTATION_STATES.CCW_3:
+                    this.rotationState = ROTATION_STATES.CCW_2
+                    break
+
+                case ROTATION_STATES.CW_1:
+                    this.rotationState = ROTATION_STATES.CW_2
+                    break
+
+                case ROTATION_STATES.CW_2:
+                    this.rotationState = ROTATION_STATES.CW_3
+                    break
+
+                case ROTATION_STATES.CW_3:
+                    this.rotationState = ROTATION_STATES.DEFAULT
+                    break
             }
         }
     }

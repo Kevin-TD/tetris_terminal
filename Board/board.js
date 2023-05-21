@@ -1,10 +1,12 @@
 const CONSTANTS = require("../constants")
-const { GridHolder } = require("../GridHolder/gridHolder")
+const { GridHandler } = require("../Grid/gridHandler")
 const { MovementWrapper } = require("../Movement/movementWrapper")
-const { RotationStateWrapper }  = require("../RotationStates/rotationStateWrapper")
 const { sortDoubleArray } = require("../utils")
 const RotationHandler = require("../Pieces/rotation_maps")
+const { ScoreHandler } = require("../Score/scoreHandler")
 const { BagHandler } = require("../Bag/bagHandler")
+const { InputWrapper } = require("../Input/inputWrapper.js")
+const { INPUT_TYPES } = require("../constants.js")
 
 const { TPiece } = require("../Pieces/t_piece.js")
 const { OPiece } = require("../Pieces/o_piece.js")
@@ -15,19 +17,18 @@ const { ZPiece } = require("../Pieces/z_piece.js")
 const { SPiece } = require("../Pieces/s_piece.js")
 
 
-// TODO: change dx dy to like change in row, change in col. i dont like the var swappin
-// TODO: make left padding, ground moves limit into global constants 
 // TODO: make better list comparison function. doing .toStrings is just cringe, it being less optimal aside 
-// ! TODO: when finalizing because it hit the ground, make sure it gets DROPPED and not mid-rotation. perhaps you may want to not change it every time a rotation happens. just gotta make sure to not terminate if it's in the air. 
-// TODO: it is not detecting properly if it hits the ground. like when it's right on top another piece, that should be the ground. 
 // TODO: when the game ends make sure the last frame shows even if there is a seemingly malformed block 
+// TODO: considering adding a "hard drop but not finalize". 
 
 
 class Board {
     constructor(rows, cols) {
         /** @protected {number[]} matrix holder */
-        this.Grid = new GridHolder(rows, cols) // TODO: rename to "handler"?
+        this.Grid = new GridHandler(rows, cols) // TODO: rename to "handler"?
         this.Bag = new BagHandler()
+        this.Score = new ScoreHandler() 
+        this.gameIsOver = false 
 
         this.insertPiece(this.Bag.getNextPiece())
 
@@ -36,36 +37,41 @@ class Board {
     /**
      * @returns {void} 
      */
-    printBoard() {
-        console.log("********")
+    getBoardString() {
+        if (this.gameHasEnded()) return this.Grid.getGridString() 
 
-        this.Bag.ghostPiece.entries = this.hardDropEntries(this.Bag.movingPiece.entries)
+        let ghostEntries = this.hardDropEntries(this.Bag.movingPiece.entries)
+        let str = ""
+
         if (
-            !this.Bag.movingPiece.entries.some(x => this.Bag.ghostPiece.entries.some(y => x == y.toString()))
+            !this.Bag.movingPiece.entries.some(x => ghostEntries.some(y => x == y.toString()))
             // TODO: make less cringe ^^^^
         ) { 
             // check if they share no elements
 
-            for (let i = 0; i < this.Bag.ghostPiece.entries.length; i++) {
-                let row = this.Bag.ghostPiece.entries[i][0]
-                let col = this.Bag.ghostPiece.entries[i][1]
+            for (let i = 0; i < ghostEntries.length; i++) {
+                let row = ghostEntries[i][0]
+                let col = ghostEntries[i][1]
                 this.Grid.enableEntry(row, col, CONSTANTS.GHOST_PIECE_REPRESENTATION)
             }
 
-            this.Grid.printGrid()
+            str = this.Grid.getGridString()
 
-            for (let i = 0; i < this.Bag.ghostPiece.entries.length; i++) {
-                let row = this.Bag.ghostPiece.entries[i][0]
-                let col = this.Bag.ghostPiece.entries[i][1]
+            for (let i = 0; i < ghostEntries.length; i++) {
+                let row = ghostEntries[i][0]
+                let col = ghostEntries[i][1]
                 this.Grid.disableEntry(row, col)
             }
         }
         else {
-            this.Grid.printGrid()
+            str = this.Grid.getGridString() 
         }
 
-        // this.Grid.printGrid()
-        console.log("********")
+        return str 
+    }
+
+    gameHasEnded() {
+        return this.gameIsOver
     }
 
     /**
@@ -73,27 +79,26 @@ class Board {
      * @param {TPiece | OPiece | IPiece | JPiece | LPiece | ZPiece | SPiece} piece 
      */
     insertPiece(piece) {
-        let m = piece.Blocks.Grid 
+        let insertedGrid = piece.Blocks.Grid 
+        CONSTANTS.DEBUG_LOG("inserted grid = ")
+        CONSTANTS.DEBUG_LOG(insertedGrid)
 
 
         let i = 0 
-        while(m.length != 0) {
-            CONSTANTS.DEBUG_LOG("hi")
-            CONSTANTS.DEBUG_LOG(m)
-
+        while(insertedGrid.length != 0) {
 
             if (
                 piece.Blocks.entryIsEnabled(0, 0) &&  // check to see if this piece could be added 
                 this.Grid.entryIsEnabled(i, 0 + CONSTANTS.LEFT_PADDING) // is this piece interfering with an enabled slot?
             ) {
-                console.log("game end?", i, CONSTANTS.LEFT_PADDING)
+                this.gameIsOver = true
                 return;
             }
             if (
                 piece.Blocks.entryIsEnabled(0, 1) &&
                 this.Grid.entryIsEnabled(i, 1 + CONSTANTS.LEFT_PADDING) 
             ) {
-                console.log("game end?", i, CONSTANTS.LEFT_PADDING + 1)
+                this.gameIsOver = true
                 return;
             }
 
@@ -102,7 +107,7 @@ class Board {
                 this.Grid.entryIsEnabled(i, 2 + CONSTANTS.LEFT_PADDING) 
                 
             ) {
-                console.log("game end?", i, CONSTANTS.LEFT_PADDING +  2)
+                this.gameIsOver = true
                 return;
             }
 
@@ -110,15 +115,15 @@ class Board {
                 piece.Blocks.entryIsEnabled(0, 3) &&
                 this.Grid.entryIsEnabled(i, 3 + CONSTANTS.LEFT_PADDING) 
             ) {
-                console.log("game end?", i, CONSTANTS.LEFT_PADDING +  3)
+                this.gameIsOver = true
                 return;
             }
       
 
-            if (m[0][0] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 0 + CONSTANTS.LEFT_PADDING, m[0][0])
-            if (m[0][1] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 1 + CONSTANTS.LEFT_PADDING, m[0][1])
-            if (m[0][2] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 2 + CONSTANTS.LEFT_PADDING, m[0][2])
-            if (m[0][3] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 3 + CONSTANTS.LEFT_PADDING, m[0][3])
+            if (insertedGrid[0][0] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 0 + CONSTANTS.LEFT_PADDING, insertedGrid[0][0])
+            if (insertedGrid[0][1] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 1 + CONSTANTS.LEFT_PADDING, insertedGrid[0][1])
+            if (insertedGrid[0][2] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 2 + CONSTANTS.LEFT_PADDING, insertedGrid[0][2])
+            if (insertedGrid[0][3] != CONSTANTS.DISABLED_ENTRY_REPRESENTATION) this.Grid.enableEntry(i, 3 + CONSTANTS.LEFT_PADDING, insertedGrid[0][3])
     
             
             if (piece.Blocks.entryIsEnabled(0, 0)) {
@@ -135,7 +140,7 @@ class Board {
             }
 
             i++ 
-            m.shift()
+            insertedGrid.shift()
         }
         
         this.Bag.movingPiece.pieceRepresentation = piece.TextRepresentation
@@ -145,8 +150,7 @@ class Board {
     hardDropActiveEntry() {
         let movedEntries = this.hardDropEntries(this.Bag.movingPiece.entries)
         this.updateGrid(movedEntries)
-        this.Bag.movingPiece.reset() // TODO: rename to "clear" instead?
-        this.insertPiece(this.Bag.getNextPiece())
+        this.Bag.movingPiece.clear() 
     }
 
     hardDropEntries(entries) {
@@ -227,7 +231,6 @@ class Board {
         }
 
         this.Bag.movingPiece.entries = []
-        CONSTANTS.DEBUG_LOG(entries)
 
         // update grid 
         for (let i = 0; i < entries.length; i++) {
@@ -265,15 +268,9 @@ class Board {
     }
 
     activePieceIsOnGround() {
-        for (let i = this.Bag.movingPiece.entries.length - 1; i >= 0; i--) {
-            try {
-                this.Grid.entryIsEnabled(this.Bag.movingPiece.entries[i][0] + 1, this.Bag.movingPiece.entries[i][1])
-            }
-            catch {
-                return true; 
-            }
-        }  
-        return false; 
+        let ghostEntries = this.hardDropEntries(this.Bag.movingPiece.entries)
+        return ghostEntries.toString() == this.Bag.movingPiece.entries.toString()
+        // TODO: dies of cringe... 
     }
 
     /**
@@ -337,47 +334,163 @@ class Board {
   
     }
 
-    input(input) {
-        if (input == "l") {
-            this.moveActivePiece(new MovementWrapper("LEFT"))
-        }
-        else if (input == "r") {
-            this.moveActivePiece(new MovementWrapper("RIGHT"))
-        }
-        else if (input == "d") {
-            this.moveActivePiece(new MovementWrapper("DOWN"))
-        }
-        else if (input == "h") {
-            this.hardDropActiveEntry()
-        }
-        else if (input == "s") { 
-           this.rotateActivePiece(new MovementWrapper("CCW"))
-        }
-        else if (input == "f") { 
-            this.rotateActivePiece(new MovementWrapper("CW"))
+    checkAndClearLines() {
+        let rowsToClear = []
+
+        for (let i = 0; i < this.Grid.getRows(); i++) {
+            let lineCleared = true 
+
+            iterateColumn:
+            for (let j = 0; j < this.Grid.getCols(); j++) {
+               if (!this.Grid.entryIsEnabled(i, j)) {
+                lineCleared = false
+                break iterateColumn
+               }
+            }
+
+            if (lineCleared) rowsToClear.push(i)
         }
 
+        CONSTANTS.DEBUG_LOG("rows to clear = ")
+        CONSTANTS.DEBUG_LOG(rowsToClear)
 
+        let linesCleared = rowsToClear.length
 
-        
+        CONSTANTS.DEBUG_LOG("grid = ")
+
+        // clear lines
+        for (let i = 0; i < rowsToClear.length; i++) {
+            for (let j = 0; j < this.Grid.getCols(); j++) {
+                this.Grid.disableEntry(rowsToClear[i], j)
+            }
+        }
+
+        this.Score.updateScore(linesCleared)
+
+        // drag down 
+        for (let i = rowsToClear[0] - 1; i >= 0; i--) {
+            for (let j = 0; j < this.Grid.getCols(); j++) {
+               if (this.Grid.entryIsEnabled(i, j)) {
+                let pieceRep = this.Grid.getEntry(i, j)
+                this.Grid.disableEntry(i, j)
+                this.Grid.enableEntry(i + linesCleared, j, pieceRep)
+               }
+            }
+        }
+
+    }
+
+    finalizeActivePiece() {
+        CONSTANTS.DEBUG_LOG("before")
+        this.hardDropActiveEntry()
+        CONSTANTS.DEBUG_LOG("dropped")
+        this.Bag.canUseHold = true 
+        this.checkAndClearLines()
+        CONSTANTS.DEBUG_LOG("checked and cleared")
+        this.insertPiece(this.Bag.getNextPiece())
+        CONSTANTS.DEBUG_LOG("inserted")
+        CONSTANTS.DEBUG_LOG(this.gameHasEnded())
+
+    }
+    
+    handleIfActivePieceOnGround() {
         if (this.activePieceIsOnGround()) {
             this.Bag.movingPiece.groundHasBeenTouched = true; 
         }
         
         if (this.Bag.movingPiece.groundHasBeenTouched) {
-            this.Bag.movingPiece.groundMovesMade++ 
+            if (this.activePieceIsOnGround()) this.Bag.movingPiece.groundMovesMade++ 
             
             if (this.Bag.movingPiece.groundMovesMade == CONSTANTS.GROUND_MOVES_LIMIT) {
-                this.Bag.movingPiece.reset()
-                this.insertPiece(this.Bag.getNextPiece())
-                
+                this.finalizeActivePiece()
+        
                 CONSTANTS.DEBUG_LOG("piece should now be fixed")
                 
             }
         }
+    }
+
+    handleHold() {
+        if (!this.Bag.canUseHold) {
+            CONSTANTS.DEBUG_LOG("cannot use hold")
+        } 
+
+        if (this.Bag.canUseHold) {
+            // for wherever the current moving piece is, disable its entries
+            for (let i = 0; i < this.Bag.movingPiece.entries.length; i++) {
+                let row = this.Bag.movingPiece.entries[i][0]
+                let col = this.Bag.movingPiece.entries[i][1]
+                this.Grid.disableEntry(row, col)
+            }
+
+            if (!this.Bag.holdPieceExists()) {
+                this.Bag.holdPiece(this.Bag.movingPiece.pieceRepresentation)
+                this.Bag.movingPiece.clear()
+                this.insertPiece(this.Bag.getNextPiece())
+            }
+            else {
+                let pieceRep = this.Bag.movingPiece.pieceRepresentation
+                this.Bag.movingPiece.clear()
+                this.insertPiece(this.Bag.getHoldPiece())
+                this.Bag.holdPiece(pieceRep)
+            }
+
+            this.Bag.canUseHold = false 
+        }
+    }
+
+    /**
+     * 
+     * @param {InputWrapper} input 
+     */
+    input(input) {
+        switch (input.getInput()) {
+            case INPUT_TYPES.MOVE_LEFT:
+                this.moveActivePiece(new MovementWrapper("LEFT"))
+                break
+
+            case INPUT_TYPES.MOVE_RIGHT:
+                this.moveActivePiece(new MovementWrapper("RIGHT"))
+                break
+
+            case INPUT_TYPES.ROTATE_CCW:
+                this.rotateActivePiece(new MovementWrapper("CCW"))
+                break
+
+            case INPUT_TYPES.ROTATE_CW:
+                this.rotateActivePiece(new MovementWrapper("CW"))
+                break
+
+            case INPUT_TYPES.MOVE_DOWN_1:
+                this.moveActivePiece(new MovementWrapper("DOWN"))
+                break
+
+            case INPUT_TYPES.HARD_DROP_AND_FINALIZE:
+                this.finalizeActivePiece()
+                CONSTANTS.DEBUG_LOG("i finalized the piece")
+                break 
+
+            case INPUT_TYPES.HARD_DROP_DO_NOT_FINALIZE:
+                let movedEntries = this.hardDropEntries(this.Bag.movingPiece.entries)
+                this.updateGrid(movedEntries)
+                break 
+
+            case INPUT_TYPES.HOLD_PIECE:
+                this.handleHold()
+                break
+            
+            case INPUT_TYPES.QUIT:
+                this.gameIsOver = true 
+                break 
+        }
         
-        CONSTANTS.DEBUG_LOG(`ground moves made = ${this.Bag.movingPiece.groundMovesMade}`)
-        CONSTANTS.DEBUG_LOG(`is on ground? ${this.activePieceIsOnGround()}`)
+        if (this.gameHasEnded()) {
+            CONSTANTS.DEBUG_LOG('GAME HAS ENDED!')
+            return
+        }
+
+        this.handleIfActivePieceOnGround()
+        
     }
 
 }

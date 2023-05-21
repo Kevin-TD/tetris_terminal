@@ -1,6 +1,6 @@
 const GAME_CONSTANTS = require("../constants")
 
-class GridHolder {
+class GridHandler {
     constructor(rows, cols) {
         /** @protected {number[]} matrix holder */
         this.Grid = []
@@ -37,6 +37,15 @@ class GridHolder {
             console.log(curRow)
 
         }
+    }
+
+    getGridString() {
+        let s = ""
+        for (let i = 0; i < this.rows; i++)  {
+            s += this.Grid[i].join("") + "\n"
+        }
+        s = s.slice(0, s.length - 1)
+        return s 
     }
 
     /**
@@ -81,5 +90,5 @@ class GridHolder {
 }
 
 module.exports = {
-    GridHolder
+    GridHandler
 }

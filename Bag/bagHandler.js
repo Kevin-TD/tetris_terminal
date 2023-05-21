@@ -6,35 +6,51 @@ const { LPiece } = require("../Pieces/l_piece.js")
 const { ZPiece } = require("../Pieces/z_piece.js")
 const { SPiece } = require("../Pieces/s_piece.js")
 
-const { GHOST_PIECE_REPRESENTATION } = require("../constants.js")
-
 const { shuffleArray } = require("../utils.js")
+const { getPieceFromPieceRep, getStringPieceFromPieceRep } = require("../Pieces/piece.js")
 
 const { MovingPiece } = require("./movingPiece.js")
 
 
 class BagHandler {
     constructor() {
-        this.Bag = shuffleArray([
-            new TPiece(), new OPiece(), new IPiece(), new JPiece(), new LPiece(), new ZPiece(), new SPiece(),
-            new TPiece(), new OPiece(), new IPiece(), new JPiece(), new LPiece(), new ZPiece(), new SPiece()
-        ])
-        this.holdPiece = []
+        this.Bag = this.generatePieces()
+        this.Bag.push(...this.generatePieces())
+        this.pieceInHold = undefined
+        this.canUseHold = true
         this.movingPiece = new MovingPiece() 
-        this.ghostPiece = new MovingPiece()
-        this.ghostPiece.pieceRepresentation = GHOST_PIECE_REPRESENTATION
+    }
+    generatePieces() {
+        return shuffleArray([new TPiece(), new OPiece(), new IPiece(), new JPiece(), new LPiece(), new ZPiece(), new SPiece()])
     }
     getNextPiece() {
         let piece = this.Bag.shift() 
 
         if (this.Bag.length == 5) {
-            this.Bag.push(...shuffleArray([new TPiece(), new OPiece(), new IPiece(), new JPiece(), new LPiece(), new ZPiece(), new SPiece()]))
+            this.Bag.push(...this.generatePieces())
         }
 
         return piece 
     }
-    holdPiece() {
-        
+    getBagString() {
+        let bag = []
+        for (let i = 0; i < 5; i++) {
+            bag.push(getStringPieceFromPieceRep(this.Bag[i].TextRepresentation))
+        }
+        return bag
+    }
+    getHoldPieceString() {
+        if (this.pieceInHold == undefined) return ""
+        return getStringPieceFromPieceRep(this.pieceInHold.TextRepresentation)
+    }
+    holdPiece(pieceRep) {
+        this.pieceInHold = getPieceFromPieceRep(pieceRep)
+    }
+    getHoldPiece() {
+        return this.pieceInHold
+    }
+    holdPieceExists() {
+        return this.pieceInHold != undefined
     }
     
 }

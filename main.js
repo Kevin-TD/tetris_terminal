@@ -1,43 +1,61 @@
-const { Board } = require("./Board/board.js")
-const { TPiece } = require("./Pieces/t_piece.js")
-const { OPiece } = require("./Pieces/o_piece.js")
-const { IPiece } = require("./Pieces/i_piece.js")
-const { JPiece } = require("./Pieces/j_piece.js")
-const { LPiece } = require("./Pieces/l_piece.js")
-const { ZPiece } = require("./Pieces/z_piece.js")
-const { SPiece } = require("./Pieces/s_piece.js")
-
+const { Tetris } = require("./tetris")
 const prompt = require("prompt-sync")({ sigint: true })
 
-// TODO: 
-/*
-    impl rotation for all pieces [DONE]
-    impl bag generation 
-    impl line clearing
-    impl score 
-    remove all useless imports 
-    make more structured import handling (wrapper time)
-    make ghost piece
-    convert to discordjs 
-*/
+let text = "Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down, h - hard drop, q - quit, u - hold, b - dropf): "
+let tetris = new Tetris()
+console.log(tetris.getBoardString())
 
-
-// rows 16 to 24  
-// cols typically 10 
-
-// T, O, I, J, L, Z, S
-
-let Game = new Board(16, 10) 
-
-Game.printBoard()
-let input = prompt("Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down, h - hard drop, q - quit): ")
+let input = prompt(text)
 while (input != "q") {
 
-    Game.input(input)
+    switch (input) {
+        case "l":
+            tetris.sendInput("MOVE_LEFT")
+            break 
+        case "r":
+            tetris.sendInput("MOVE_RIGHT")
+            break
+        case "s":
+            tetris.sendInput("ROTATE_CCW")
+            break
+        case "f":
+            tetris.sendInput("ROTATE_CW")
+            break
+        case "d":
+            tetris.sendInput("MOVE_DOWN_1")
+            break
+        case "h":
+            tetris.sendInput("HARD_DROP_AND_FINALIZE")
+            break
+        case "q":
+            tetris.sendInput("QUIT")
+            break
+        case "u":
+            tetris.sendInput("HOLD_PIECE")
+            break
+        case "b":
+            tetris.sendInput("HARD_DROP_DO_NOT_FINALIZE")
+            break
+    }
 
-    Game.printBoard()
+    console.log("bag string array = ")
+    for (let str of tetris.getBagStringArray()) {
+        console.log(str + "\n")
+    }
 
-    input = prompt("Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down, h - hard drop, q - quit): ")
+    console.log("hold piece = ")
+    console.log(tetris.getHoldPieceString())
+
+    console.log("board =")
+    console.log(tetris.getBoardString())
+
+    console.log(`score = ${tetris.getScore()}`)
+
+
+    if (tetris.gameIsOver()) {
+        console.log("no more games for you")
+        break
+    }
+
+    input = prompt(text)
 }
-
-

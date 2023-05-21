@@ -49,29 +49,36 @@ function getRotatedEntries(rotationType, rotationState, activePieceEntries, piec
     let sortedEntries = sortDoubleArray(activePieceEntries)
     let map
 
+    switch (pieceRepresentation) {
+        case CONSTANTS.T_PIECE_REPRESENTATION:
+            map = TPieceRotationMap
+            break
 
-    // TODO: code in the rest of the if statements 
-    if (pieceRepresentation == CONSTANTS.T_PIECE_REPRESENTATION) {
-        map = TPieceRotationMap
+        case CONSTANTS.O_PIECE_REPRESENTATION:
+            map = OPieceRotationMap
+            break
+            
+        case CONSTANTS.I_PIECE_REPRESENTATION:
+            map = IPieceRotationMap
+            break
+            
+        case CONSTANTS.J_PIECE_REPRESENTATION:
+            map = JPieceRotationMap
+            break
+
+        case CONSTANTS.L_PIECE_REPRESENTATION:
+            map = LPieceRotationMap
+            break
+
+        case CONSTANTS.Z_PIECE_REPRESENTATION:
+            map = ZPieceRotationMap
+            break
+
+        case CONSTANTS.S_PIECE_REPRESENTATION:
+            map = SPieceRotationMap
+            break
     }
-    else if (pieceRepresentation == CONSTANTS.O_PIECE_REPRESENTATION) {
-        map = OPieceRotationMap
-    }
-    else if (pieceRepresentation == CONSTANTS.I_PIECE_REPRESENTATION) {
-        map = IPieceRotationMap
-    }
-    else if (pieceRepresentation == CONSTANTS.J_PIECE_REPRESENTATION) {
-        map = JPieceRotationMap
-    }
-    else if (pieceRepresentation == CONSTANTS.L_PIECE_REPRESENTATION) {
-        map = LPieceRotationMap
-    }
-    else if (pieceRepresentation == CONSTANTS.Z_PIECE_REPRESENTATION) {
-        map = ZPieceRotationMap
-    }
-    else if (pieceRepresentation == CONSTANTS.S_PIECE_REPRESENTATION) {
-        map = SPieceRotationMap
-    }
+   
 
     let selection = map[rotationType.getMovementString()][rotationState.getRotationString()]
 
@@ -79,11 +86,8 @@ function getRotatedEntries(rotationType, rotationState, activePieceEntries, piec
         let row = sortedEntries[i][0]
         let col = sortedEntries[i][1]
 
-        newEntries.push([
-            row + selection[i][0], col + selection[i][1]
-        ])
+        newEntries.push([row + selection[i][0], col + selection[i][1]])
     }
-
 
     return newEntries
 }

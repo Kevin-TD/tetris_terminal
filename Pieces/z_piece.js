@@ -1,9 +1,9 @@
-const { GridHolder } = require("../GridHolder/gridHolder")
+const { GridHandler } = require("../Grid/gridHandler")
 const { Z_PIECE_REPRESENTATION, GRID_ROWS, GRID_COLS } = require("../constants.js")
 
 class ZPiece  {
     constructor() {
-        this.Blocks = new GridHolder(GRID_ROWS, GRID_COLS)
+        this.Blocks = new GridHandler(GRID_ROWS, GRID_COLS)
         this.TextRepresentation = Z_PIECE_REPRESENTATION
 
         this.Blocks.enableEntry(0, 0, this.TextRepresentation)
