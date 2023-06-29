@@ -5,6 +5,8 @@ let text = "Insert input (l - left, r - right, s - ccw rot, f - cw rot d - down,
 let tetris = new Tetris()
 console.log(tetris.getBoardString())
 
+// TODO: make piece representations accessible
+
 let input = prompt(text)
 while (input != "q") {
 

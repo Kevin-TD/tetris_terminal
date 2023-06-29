@@ -25,13 +25,14 @@ function loadData(fileName) {
     return map 
 }
 
-const TPieceRotationMap = loadData("./Pieces/PieceRotData/t_piece.txt")
-const OPieceRotationMap = loadData("./Pieces/PieceRotData/o_piece.txt")
-const IPieceRotationMap = loadData("./Pieces/PieceRotData/i_piece.txt")
-const JPieceRotationMap = loadData("./Pieces/PieceRotData/j_piece.txt")
-const LPieceRotationMap = loadData("./Pieces/PieceRotData/l_piece.txt")
-const ZPieceRotationMap = loadData("./Pieces/PieceRotData/z_piece.txt")
-const SPieceRotationMap = loadData("./Pieces/PieceRotData/s_piece.txt")
+
+const TPieceRotationMap = loadData(__dirname + "/PieceRotData/t_piece.txt")
+const OPieceRotationMap = loadData(__dirname + "/PieceRotData/o_piece.txt")
+const IPieceRotationMap = loadData(__dirname + "/PieceRotData/i_piece.txt")
+const JPieceRotationMap = loadData(__dirname + "/PieceRotData/j_piece.txt")
+const LPieceRotationMap = loadData(__dirname + "/PieceRotData/l_piece.txt")
+const ZPieceRotationMap = loadData(__dirname + "/PieceRotData/z_piece.txt")
+const SPieceRotationMap = loadData(__dirname + "/PieceRotData/s_piece.txt")
 
 
 /**
